@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls,
   CPUUsage, ComCtrls, ImgList,
-  CustomTypes;
+  CustomTypes,CustomUtil;
 const
   CDATA = 100;
 
@@ -233,12 +233,28 @@ begin
 end;
 
 procedure TPrcMainFrm.FormCreate(Sender: TObject);
-  begin
-    init;
-    CpuUsageTotal := TCpuUsage.Create;
-    ProcessList.SmallImages := IconList;
+var
+List : TList;
+prcInfo : TProcessInfo;
+begin
 
-  end;
+  init;
+  ProcessList.SmallImages := IconList;
+
+  List := TList.Create;
+  CpuUsageTotal := TCpuUsage.Create;
+
+  prcInfo := TProcessInfo.Create;
+  prcInfo.pid := 5204;
+  prcInfo.Name := 'QQ.exe';
+  prcInfo.MemUsg := 19222;
+  prcInfo.CPUUsg := 20;
+  prcInfo.Priority := '¸ß';
+  prcInfo.UserName := GetProcessUserByPic(5204);
+  prcInfo.icon := GetProcessIcoByPid(5204);
+  List.Add(@prcInfo);
+  setData(List);
+end;
 
 procedure TPrcMainFrm.FormOnDestroy(Sender: TObject);
 begin
@@ -248,7 +264,7 @@ end;
 procedure TPrcMainFrm.setData(datas : TList);
 var
   I : Integer;
-  P : ^ProcessInfo;
+  P : ^TProcessInfo;
   icon : TIcon;
 begin
   Icon := TIcon.Create;

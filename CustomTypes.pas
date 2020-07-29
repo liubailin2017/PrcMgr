@@ -7,7 +7,7 @@ uses
 
 type
  { 一条进程信息记录  }
-ProcessInfo = class
+TProcessInfo = class
   pid : THandle;
   Name : string;
   MemUsg : Integer;
@@ -19,7 +19,7 @@ end;
 
 { 进程信息的缓存 }
 type
-ProcessInfoCache = class
+TProcessInfoCache = class
   icon : HICON;
   CPUUsageData :TCPUUsageData;
   IsAlive : Boolean; { 没被查询就被回收掉内存 }

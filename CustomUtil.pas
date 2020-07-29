@@ -11,6 +11,7 @@ procedure FreeIcon(icon : HICON);
 function AddFileTimes(KernelTime, UserTime: TFileTime): TDateTime;
 { 获取进程用户 }
 function GetProcessUser(hprocess: THandle): string;
+function GetProcessUserByPic(Pid : Cardinal): string;
 { 好像提不提权都一样 。。。 }
 function PromoteProcessPrivilege(Processhandle:Thandle;Token_Name:pchar):boolean;
 function PriorityToStr(priority: Cardinal): string;
@@ -44,6 +45,11 @@ end;
 procedure FreeIcon(icon : HICON);
 begin
 
+end;
+
+function GetProcessUserByPic(Pid : Cardinal): string;
+begin
+ Result := GetProcessUser( OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ,False,Pid));
 end;
 
 function GetProcessUser(hprocess: THandle): string;

@@ -84,8 +84,9 @@ object PrcMainFrm: TPrcMainFrm
         end
         item
           Caption = 'User Name'
-          Width = 100
+          Width = 150
         end>
+      RowSelect = True
       TabOrder = 0
       ViewStyle = vsReport
     end

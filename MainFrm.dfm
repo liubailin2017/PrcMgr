@@ -12,6 +12,7 @@ object PrcMainFrm: TPrcMainFrm
   Font.Style = []
   OldCreateOrder = False
   OnCreate = FormCreate
+  OnDestroy = FormOnDestroy
   PixelsPerInch = 96
   TextHeight = 13
   object LabelStatus: TLabel
@@ -28,6 +29,7 @@ object PrcMainFrm: TPrcMainFrm
     Height = 97
     Caption = 'CPU Usage History'
     TabOrder = 0
+    OnClick = BoxCPUUsageClick
     object PaintBoxCPUUsage: TPaintBox
       Left = 3
       Top = 16

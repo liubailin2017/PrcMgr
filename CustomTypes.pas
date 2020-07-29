@@ -22,6 +22,7 @@ type
 ProcessInfoCache = class
   icon : HICON;
   CPUUsageData :TCPUUsageData;
+  IsAlive : Boolean; { 没被查询就被回收掉内存 }
 end;
 
 implementation

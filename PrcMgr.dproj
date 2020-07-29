@@ -46,6 +46,10 @@
 			<DCCReference Include="MainFrm.pas">
 				<Form>PrcMainFrm</Form>
 			</DCCReference>
+			<DCCReference Include="CPUUsage.pas"/>
+			<DCCReference Include="CustomTypes.pas"/>
+			<DCCReference Include="uCpuUsage.pas"/>
+			<DCCReference Include="CustomUtil.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

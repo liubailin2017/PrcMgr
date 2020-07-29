@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls,
-  CPUUsage, ComCtrls, ImgList;
+  CPUUsage, ComCtrls, ImgList,
+  CustomTypes;
 const
   CDATA = 100;
 
@@ -25,6 +26,8 @@ type
 
     procedure PBMonPaint(Sender: TObject);
     procedure TimerUpdateUsageHistoryTimer(Sender: TObject);
+    procedure FormOnDestroy(Sender: TObject);
+    procedure BoxCPUUsageClick(Sender: TObject);
   private
   { 1 2 3 4 5 6  7 }
     CpuUsgData : array[0..CDATA] of Integer;
@@ -94,6 +97,11 @@ implementation
   end;
 
 
+
+procedure TPrcMainFrm.BoxCPUUsageClick(Sender: TObject);
+begin
+
+end;
 
 { »æÖÆcpu Êý¾Ý }
   procedure TPrcMainFrm.PBConPaint(Sender: TObject);
@@ -232,9 +240,36 @@ procedure TPrcMainFrm.FormCreate(Sender: TObject);
 
   end;
 
-procedure TPrcMainFrm.setData(datas : TList);
+procedure TPrcMainFrm.FormOnDestroy(Sender: TObject);
 begin
+  CpuUsageTotal.Free;
+end;
 
+procedure TPrcMainFrm.setData(datas : TList);
+var
+  I : Integer;
+  P : ^ProcessInfo;
+  icon : TIcon;
+begin
+  Icon := TIcon.Create;
+  ProcessList.Clear;
+  IconList.Clear;
+  for I := 0 to datas.Count - 1 do
+  begin
+    P := datas.Items[I];
+    icon.Handle := P.icon;
+    IconList.AddIcon(icon);
+    with ProcessList.Items.Add do
+    begin
+      Caption := P^.Name;
+      SubItems.Add(IntToStr(P^.MemUsg) );
+      SubItems.Add(IntToStr(P^.CPUUsg));
+      SubItems.Add(P^.Priority);
+      SubItems.Add(P^.UserName);
+      ImageIndex := IconList.Count - 1;
+    end;
+  end;
+  icon.Free;
 end;
 
 {$R *.dfm}

@@ -9,16 +9,16 @@ uses
   CustomUtil in 'CustomUtil.pas',
   UpdateThrd in 'UpdateThrd.pas',
   CompareForProcess in 'CompareForProcess.pas',
-  Windows;
+  Windows,sysUtils,Dialogs;
 {$R *.res}
 const
-atm = 'identification';
+atm = 'identification11';
 atm2 = 'identification2';
 var
 hwd : HWND;
-
+errmsg : string;
 begin
- if GlobalFindAtom(atm)=1 then
+ if GlobalFindAtom(atm)=0 then
  begin
   GlobalAddAtom(atm);
   System.ReportMemoryLeaksOnShutdown := true;
@@ -29,6 +29,10 @@ begin
   GlobalDeleteAtom(GlobalFindAtom(atm));
  end;
  hwd := FindWindow(nil,'Process Manager');
- ShowWindow(hwd ,SW_SHOW);
+ ShowWindow(hwd ,SW_RESTORE);
+ setForegroundWindow(hwd);
+
+ if hwd = 0 then
+   ShowMessage('errcode : ' + IntToStr(GetLastError));
 
 end.

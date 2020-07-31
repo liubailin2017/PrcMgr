@@ -59,15 +59,25 @@ implementation
   begin
     Result := Trunc( 10* (TProcessInfo(p1).CPUUsg - TProcessInfo(p2).CPUUsg) );
   end;
+    function StrPriToCaomparable(str :string): Integer;
+  begin
+    Result := -1;
+    if str = 'IDLE'  then  Result := 0;
+    if str = 'NORMAL'  then  Result := 1;
+    if str = 'HIGH'  then  Result := 2;
+    if str = 'REALTIME'  then  Result := 3;
+
+  end;
 
   function ComparePriD(p1 : Pointer; p2 : Pointer): Integer;
   begin
-    Result := CompareStr(TProcessInfo(p2).Priority,TProcessInfo(p1).Priority);
+    Result := StrPriToCaomparable(TProcessInfo(p2).Priority) - StrPriToCaomparable(TProcessInfo(p1).Priority);
   end;
+
 
   function ComparePriU(p1 : Pointer; p2 : Pointer): Integer;
   begin
-    Result := CompareStr(TProcessInfo(p1).Priority,TProcessInfo(p2).Priority);
+    Result := StrPriToCaomparable(TProcessInfo(p1).Priority) - StrPriToCaomparable(TProcessInfo(p2).Priority);
   end;
 
   function CompareUNmD(p1 : Pointer; p2 : Pointer): Integer;
@@ -77,7 +87,7 @@ implementation
 
   function CompareUNmU(p1 : Pointer; p2 : Pointer): Integer;
   begin
-    Result := CompareStr(TProcessInfo(p1).Priority,TProcessInfo(p2).Priority);
+    Result := CompareStr(TProcessInfo(p1).UserName,TProcessInfo(p2).UserName);
   end;
 
 end.

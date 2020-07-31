@@ -166,7 +166,7 @@ end;
 
 procedure TUpdateThrd.ChooseOrderByColum(colum: Integer; up: Boolean);
 begin
-  if (colum >= 0) and (colum <= 5) then
+  if (colum >= 0) and (colum <= 4) then
     OrderColum := colum;
   Self.up := up;
 end;

@@ -294,6 +294,7 @@ var
 begin
   Icon := TIcon.Create;
   init;
+  PromoteProcessPrivilege(GetCurrentProcess,'SeDebugPrivilege');
   ProcessList.SmallImages := IconList;
   CpuUsageTotal := TCpuUsage.Create;
    UpdateThrd := TUpdateThrd.Create;
@@ -318,7 +319,7 @@ procedure TPrcMainFrm.ProcessListDelete(n : Integer);
 var
 I : Integer;
 begin
-  for I := 0 to n do
+  for I := 0 to n - 1  do
     ProcessList.Items.Delete(ProcessList.Items.Count-1);
 end;
 
@@ -326,7 +327,7 @@ procedure TPrcMainFrm.ProcessListAdd(n : Integer);
 var
 I : Integer;
 begin
-  for I := 0 to n do
+  for I := 0 to n - 1  do
   with ProcessList.Items.Add do
     begin
 
@@ -357,7 +358,7 @@ begin
     ProcessListAdd(cmpr);
   end else if cmpr < 0 then
   begin
-    ProcessListDelete(cmpr);
+    ProcessListDelete(-cmpr);
   end;
 //  ProcessList.Clear;
 //  IconList.Clear;

@@ -12,7 +12,7 @@ function AddFileTimes(KernelTime, UserTime: TFileTime): TDateTime;
 { 获取进程用户 }
 function GetProcessUser(hprocess: THandle): string;
 function GetProcessUserByPid(Pid : Cardinal): string;
-{ 好像提不提权都一样 。。。 }
+
 function PromoteProcessPrivilege(Processhandle:Thandle;Token_Name:pchar):boolean;
 function PriorityToStr(priority: Cardinal): string;
 function GetProcessFullName(pHandle: THandle): string;
@@ -77,6 +77,7 @@ begin
   dwDomainSize := 0;
 
   if not GetTokenInformation(hToken,TokenUser,pUser,dwSize,dwSize) then Exit;
+
   LookupAccountSid(nil,pUser.User.Sid,nil,dwUserSize,nil,dwDomainSize,peUse);
   if (dwUserSize <> 0) and (dwDomainSize <> 0) then
   begin

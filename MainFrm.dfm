@@ -67,15 +67,15 @@ object PrcMainFrm: TPrcMainFrm
       Height = 363
       Columns = <
         item
-          Caption = 'Name'
+          Caption = 'Name      v'
           Width = 140
         end
         item
-          Caption = 'Memery Usage'
+          Caption = 'Memery Usage(k)'
           Width = 120
         end
         item
-          Caption = 'CPU Usage'
+          Caption = 'CPU Usage(%)'
           Width = 120
         end
         item
@@ -89,7 +89,7 @@ object PrcMainFrm: TPrcMainFrm
       Font.Charset = GB2312_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
-      Font.Name = #23435#20307
+      Font.Name = #24494#36719#38597#40657
       Font.Style = []
       FlatScrollBars = True
       GridLines = True

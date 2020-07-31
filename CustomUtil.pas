@@ -11,11 +11,11 @@ procedure FreeIcon(icon : HICON);
 function AddFileTimes(KernelTime, UserTime: TFileTime): TDateTime;
 { 获取进程用户 }
 function GetProcessUser(hprocess: THandle): string;
-function GetProcessUserByPic(Pid : Cardinal): string;
+function GetProcessUserByPid(Pid : Cardinal): string;
 { 好像提不提权都一样 。。。 }
 function PromoteProcessPrivilege(Processhandle:Thandle;Token_Name:pchar):boolean;
 function PriorityToStr(priority: Cardinal): string;
-
+function GetProcessFullName(pHandle: THandle): string;
 implementation
 
 function GetProcessIco(pHandle: THandle): HICON;
@@ -26,6 +26,14 @@ begin
   lpiIcon := 0;
   GetModuleFileNameEx(pHandle, 0, buf, Length(buf));
   Result := ExtractAssociatedIcon(HInstance,buf, lpiIcon);
+end;
+
+function GetProcessFullName(pHandle: THandle): string;
+var
+  buf: array[0..MAX_PATH] of WideChar;
+begin
+  GetModuleFileNameEx(pHandle, 0, buf, Length(buf));
+  Result := buf;
 end;
 
 function GetProcessIcoByPid(Pid : Cardinal): HICON;
@@ -47,7 +55,7 @@ begin
 
 end;
 
-function GetProcessUserByPic(Pid : Cardinal): string;
+function GetProcessUserByPid(Pid : Cardinal): string;
 begin
  Result := GetProcessUser( OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ,False,Pid));
 end;

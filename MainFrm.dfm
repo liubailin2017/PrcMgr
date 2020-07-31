@@ -42,14 +42,14 @@ object PrcMainFrm: TPrcMainFrm
     Left = 8
     Top = 472
     Width = 790
-    Height = 97
+    Height = 105
     Caption = 'Memery Usage History'
     TabOrder = 1
     object PaintBoxMemUsage: TPaintBox
       Left = 3
       Top = 16
       Width = 784
-      Height = 73
+      Height = 82
       OnPaint = PBMonPaint
     end
   end
@@ -68,27 +68,38 @@ object PrcMainFrm: TPrcMainFrm
       Columns = <
         item
           Caption = 'Name'
-          Width = 100
+          Width = 140
         end
         item
           Caption = 'Memery Usage'
-          Width = 100
+          Width = 120
         end
         item
           Caption = 'CPU Usage'
-          Width = 100
+          Width = 120
         end
         item
           Caption = 'Priority'
-          Width = 100
+          Width = 140
         end
         item
           Caption = 'User Name'
-          Width = 150
+          Width = 200
         end>
+      Font.Charset = GB2312_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = #23435#20307
+      Font.Style = []
+      FlatScrollBars = True
+      GridLines = True
+      GroupHeaderImages = IconList
       RowSelect = True
+      ParentFont = False
+      SmallImages = IconList
       TabOrder = 0
       ViewStyle = vsReport
+      OnColumnClick = PrcListOnColumClick
     end
   end
   object TimerUpdateUsageHistory: TTimer
@@ -99,6 +110,6 @@ object PrcMainFrm: TPrcMainFrm
   end
   object IconList: TImageList
     Left = 744
-    Top = 24
+    Top = 40
   end
 end

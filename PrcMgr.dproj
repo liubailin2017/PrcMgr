@@ -50,6 +50,8 @@
 			<DCCReference Include="CustomTypes.pas"/>
 			<DCCReference Include="uCpuUsage.pas"/>
 			<DCCReference Include="CustomUtil.pas"/>
+			<DCCReference Include="UpdateThrd.pas"/>
+			<DCCReference Include="CompareForProcess.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

@@ -47,9 +47,27 @@ function wsCreateUsageCounter(PID:cardinal):PCPUUsageData;
 function wsGetCpuUsage(aCounter:PCPUUsageData):single;
 procedure wsDestroyUsageCounter(aCounter:PCPUUsageData);
 function GetCpuUsage_slowly(PID:cardinal):single;
+function GetCpuNmb(): Integer;
+
 implementation
 
 uses Windows;
+
+var
+GCpuNmb : Integer = 0;
+
+function GetCpuNmb(): Integer;
+var
+  SysInfo: TSystemInfo;
+begin
+  if GCpuNmb =0 then
+  begin
+    GetSystemInfo(SysInfo);
+    GCpuNmb := SysInfo.dwNumberOfProcessors;
+  end
+  else
+  Result := GCpuNmb;
+end;
 
 function wsCreateUsageCounter(PID:cardinal):PCPUUsageData;
 var
@@ -82,8 +100,12 @@ end;
 
 procedure wsDestroyUsageCounter(aCounter:PCPUUsageData);
 begin
- CloseHandle(aCounter.Handle);
- dispose(aCounter);
+if aCounter <> nil then
+begin
+  CloseHandle(aCounter.Handle);
+  dispose(aCounter);
+end;
+
 end;
 
 function wsGetCpuUsage(aCounter:PCPUUsageData):single;
@@ -93,6 +115,13 @@ var
  DeltaMs,ThisTime:cardinal;
  mKernel,mUser,mDelta:int64;
 begin
+
+  if(aCounter = nil) then
+  begin
+    Result := -1;
+    exit;
+  end;
+
  result:=aCounter.LastUsage;
 
  ThisTime:=GetTickCount;
@@ -111,7 +140,7 @@ begin
           (mUserTime.dwHighDateTime shr 32));
 
  //get the delta
- mDelta:=mUser+mKernel-aCounter.oldUser-aCounter.oldKernel;
+ mDelta:= (mUser+mKernel-aCounter.oldUser-aCounter.oldKernel) div GetCpuNmb();
  aCounter.oldUser:=mUser;
  aCounter.oldKernel:=mKernel;
  Assert(DeltaMs>0);
@@ -131,12 +160,17 @@ begin
     h:=OpenProcess(PROCESS_QUERY_INFORMATION,false,PID);
     {We can use the GetProcessTimes() function to get the amount of time the process has spent in kernel mode and user mode.}
     GetProcessTimes(h,mCreationTime,mExitTime,mKernelTime,mUserTime);
-    TotalTime1:=int64(mKernelTime.dwLowDateTime or (mKernelTime.dwHighDateTime shr 32)) + int64(mUserTime.dwLowDateTime or (mUserTime.dwHighDateTime shr 32));
+
+    TotalTime1:=
+    int64(mKernelTime.dwLowDateTime or (mKernelTime.dwHighDateTime shr 32))+
+    int64(mUserTime.dwLowDateTime or (mUserTime.dwHighDateTime shr 32));
 
     {Wait a little}
     Sleep(cWaitTime);
 
-    GetProcessTimes(h,mCreationTime,mExitTime,mKernelTime,mUserTime);     TotalTime2:=int64(mKernelTime.dwLowDateTime or (mKernelTime.dwHighDateTime shr 32))+
+    GetProcessTimes(h,mCreationTime,mExitTime,mKernelTime,mUserTime);
+    TotalTime2:=
+    int64(mKernelTime.dwLowDateTime or (mKernelTime.dwHighDateTime shr 32))+
     int64(mUserTime.dwLowDateTime or (mUserTime.dwHighDateTime shr 32));
 
     {This should work out nicely, as there were approx. 250 ms between the calls

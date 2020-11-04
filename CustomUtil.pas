@@ -32,8 +32,11 @@ function GetProcessFullName(pHandle: THandle): string;
 var
   buf: array[0..MAX_PATH] of WideChar;
 begin
-  GetModuleFileNameEx(pHandle, 0, buf, Length(buf));
-  Result := buf;
+  if 0 = GetModuleFileNameEx(pHandle, 0, buf, Length(buf)) then
+  begin
+    Result := '';
+  end else
+    Result := buf;
 end;
 
 function GetProcessIcoByPid(Pid : Cardinal): HICON;
@@ -68,6 +71,7 @@ var
   szUserName, szDomainName: array of Char;
   peUse:   SID_NAME_USE;
 begin
+  Result := '! no Right';
   if not OpenProcessToken(hprocess,TOKEN_QUERY,hToken) then Exit;
 
   GetTokenInformation(hToken,TokenUser,nil,0,dwSize);
@@ -86,8 +90,8 @@ begin
     LookupAccountSid(nil,pUser.User.Sid,PChar(szUserName),dwUserSize,PChar(szDomainName),dwDomainSize,peUse);
   end;
   Result := PChar(szUserName);
-  Result := Result +'/';
-  Result := Result +PChar(szDomainName);
+//  Result := Result +'/';
+//  Result := Result +PChar(szDomainName);
   CloseHandle(hToken);
   FreeMem(pUser);
 end;
@@ -95,7 +99,7 @@ end;
 function PromoteProcessPrivilege(Processhandle:Thandle;Token_Name:pchar):boolean;
 var
     Token:cardinal;
-    TokenPri:_TOKEN_PRIVILEGES;
+    TokenPri: TOKEN_PRIVILEGES;
     Luid:int64;
     i:DWORD;
 begin
@@ -108,7 +112,7 @@ begin
             TokenPri.Privileges[0].Attributes:=SE_PRIVILEGE_ENABLED;
             TokenPri.Privileges[0].Luid:=Luid;
             i:=0;
-            if AdjustTokenPrivileges(Token,false,TokenPri,sizeof(TokenPri),nil,i) then
+            if AdjustTokenPrivileges(Token,False,TokenPri,sizeof(TokenPri),nil,i) then
                 Result:=true;
         end;
     end;
@@ -117,11 +121,16 @@ end;
 
 function PriorityToStr(priority: Cardinal): string;
 begin
+  if priority = 0 then
+    Result := '! no Right'
+  else
+    Result := 'ABOVE_NORMAL'; { 这个系统没定义 }
   case priority of
     IDLE_PRIORITY_CLASS: Result := 'IDLE';
     NORMAL_PRIORITY_CLASS: Result := 'NORMAL';
     HIGH_PRIORITY_CLASS: Result := 'HIGH';
     REALTIME_PRIORITY_CLASS: Result := 'REALTIME';
   end;
+
 end;
 end.

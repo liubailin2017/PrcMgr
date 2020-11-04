@@ -31,12 +31,13 @@ SysUtils,CustomTypes;
 implementation
   function CompareNmD(p1 : Pointer; p2 : Pointer): Integer;
   begin
-    Result := CompareStr(TProcessInfo(p2).Name,TProcessInfo(p1).Name);
+
+    Result := CompareStr(LowerCase(TProcessInfo(p2).Name),LowerCase(TProcessInfo(p1).Name));
   end;
 
   function CompareNmU(p1 : Pointer; p2 : Pointer): Integer;
   begin
-    Result := CompareStr(TProcessInfo(p1).Name,TProcessInfo(p2).Name);
+    Result := CompareStr(LowerCase(TProcessInfo(p1).Name),LowerCase(TProcessInfo(p2).Name));
   end;
 
   function CompareMemD(p1 : Pointer; p2 : Pointer): Integer;
@@ -59,14 +60,15 @@ implementation
   begin
     Result := Trunc( 10* (TProcessInfo(p1).CPUUsg - TProcessInfo(p2).CPUUsg) );
   end;
-    function StrPriToCaomparable(str :string): Integer;
+
+  function StrPriToCaomparable(str :string): Integer;
   begin
     Result := -1;
     if str = 'IDLE'  then  Result := 0;
     if str = 'NORMAL'  then  Result := 1;
-    if str = 'HIGH'  then  Result := 2;
-    if str = 'REALTIME'  then  Result := 3;
-
+    if str = 'ABOVE_NORMAL' then Result := 2;
+    if str = 'HIGH'  then  Result := 3;
+    if str = 'REALTIME'  then  Result := 4;
   end;
 
   function ComparePriD(p1 : Pointer; p2 : Pointer): Integer;

@@ -5,50 +5,90 @@ interface
 uses
   TlHelp32, {CreateToolhelp32Snapshot }
   Windows, SysUtils, Classes,
-  CustomTypes, CustomUtil, uCpuUsage,
+  CustomTypes, CustomUtil, uCpuUsage, //Generics.Collections2009,
   Generics.Collections, { TList,TDictionary}
   Graphics, { Ticon }
   PsAPI, { GetProcessMemoryInfo }
-  CompareForProcess;
-
+  CompareForProcess,Dialogs;
+const
+  PROCESS_QUERY_LIMITED_INFORMATION = 4096;
 type
-  TSetData = procedure(list: TList; P : Pointer) of object;
-//type
-//  TSetData2 = procedure(list: TList;P: PTDictionary) of object;
+  TSetData = procedure(list: TList) of object;
+  TAddImage = function(path : string): Integer of object;
 
 type
   TUpdateThrd = class(TThread)
   private
     CacheDict: TDictionary<Cardinal, TProcessInfoCache>;
+//    CS : TRTLCriticalSection;
     list: TList;
+    list2: TList;
     OrderColum: Integer;
     up: Boolean;
-    IsQuit: Boolean;
+    procedure setData;
+    procedure sortList;
   protected
   public
     cbSetData: TSetData;
+    cbAddImage: TAddImage;
+    PidSelect : Integer;  { 被选中行的pid }
     { 选择用哪一列排序  }
     procedure ChooseOrderByColum(colum: Integer; up: Boolean);
-    procedure Quit();
-    procedure sort;
+    { 选中一行数据 }
+    procedure Select(index : Integer);
+
     constructor Create;
     destructor Destroy; override;
     procedure Execute; override;
-    procedure clear;
-    procedure setData;
+    procedure clearList;
+    procedure changeList;
+
   end;
 
 implementation
 
+procedure TUpdateThrd.changeList;
+var
+ tmp : TList;
+begin
+  tmp := list;
+  list := list2;
+  list2 := tmp;
+
+end;
+
+procedure TUpdateThrd.Select(index : Integer);
+var
+  P : TProcessInfo;
+begin
+
+  if(list2.Count > index) then
+  begin
+    p := list2[index];
+    PidSelect := p.pid;
+  end;
+
+end;
+
 procedure TUpdateThrd.setData;
+var
+  I: Integer;
+  t: TProcessInfo;
 begin
   if Assigned(cbSetData) then
   begin
-    cbSetData(list,CacheDict);
+    changeList;
+  for I := 0 to List2.Count - 1 do
+  begin
+    t := list2.Items[I];
+    if t.pid = PidSelect then
+    t.isSelected := True;
+  end;
+  cbSetData(list2);
   end;
 end;
 
-procedure TUpdateThrd.clear;
+procedure TUpdateThrd.clearList;
 var
   I: Integer;
   t: TProcessInfo;
@@ -69,73 +109,88 @@ var
   pPMC: PPROCESS_MEMORY_COUNTERS;
   pPMCSize: Cardinal;
   More: Boolean;
-  icon: TIcon;
   prcsInfo: TProcessInfo;
   prcinfCache: TProcessInfoCache;
-  n : integer;
 begin
-n := 0;
-//    PromoteProcessPrivilege(GetCurrentProcess,'SeDebugPrivilege');
-  icon := TIcon.Create;
   pPMCSize := Sizeof(PROCESS_MEMORY_COUNTERS);
   GetMem(pPMC, pPMCSize);
   pPMC^.cb := pPMCSize;
-  while not IsQuit do
+  while not Terminated do
   begin
-    clear;
+
+    clearList;
     HwndHelp := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     fprocessentry32.dwSize := sizeof(fprocessentry32);
     More := Process32First(HwndHelp, fprocessentry32);
     while More do
     begin
-      More := Process32Next(HwndHelp, fprocessentry32);
       prcsInfo := TProcessInfo.Create;
+      prcsInfo.isSelected := False;
       prcsInfo.ImageIndex := -1;
       prcsInfo.pid := fprocessentry32.th32ProcessID;
       prcsInfo.Name := fprocessentry32.szExeFile;
 
-      hProcess := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, False, prcsInfo.pid);
-      begin  { 获取内存使用 }
-        if GetProcessMemoryInfo(hProcess, pPMC, pPMCSize) then
-        begin
-          prcsInfo.MemUsg := pPMC^.WorkingSetSize div 1000; { 暂时用这个 }
-        end
-        else
-          prcsInfo.MemUsg := -1;
-      end;
-          { 优先级  }
+      hProcess := OpenProcess(PROCESS_QUERY_INFORMATION , False, prcsInfo.pid);
+      if hProcess <= 0 then
+        hProcess := OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION , False, prcsInfo.pid);
+
+//     if hProcess = 0 then
+//       ShowMessage('errcode : ' + SysErrorMessage(GetLastError));
+      { 获取内存使用 }
+      if GetProcessMemoryInfo(hProcess, pPMC, pPMCSize) then
+      begin
+        prcsInfo.MemUsg := pPMC^.WorkingSetSize div 1000; { 暂时用这个 }
+      end
+      else
+        prcsInfo.MemUsg := -1;
+
+      { 优先级  }
       prcsInfo.Priority := PriorityToStr(GetPriorityClass(hProcess));
-          { 用户 }
+
+      { 用户 }
       prcsInfo.UserName := GetProcessUser(hProcess);
+
+      { 确定的System进程 }
+      if (prcsInfo.UserName ='! no Right') and (prcsInfo.Name ='System') then
+      begin
+        prcsInfo.UserName := 'SYSTEM';
+      end;
 
       if not CacheDict.ContainsKey(prcsInfo.pid) then
       begin
         prcinfCache := TProcessInfoCache.Create;
-//        prcsInfo.icon := GetProcessIco(hProcess);
-//        prcinfCache.icon := prcsInfo.icon;
         prcsInfo.AbsolutePath := GetProcessFullName(hProcess);
+        { 图标 }
+        if Assigned(cbAddImage) then
+        begin
+          prcsInfo.imageindex := cbAddImage(prcsInfo.AbsolutePath);
+          prcinfCache.index := prcsInfo.imageindex;
+        end;
         prcinfCache.CPUUsageData := wsCreateUsageCounter(prcsInfo.pid);
         wsGetCpuUsage(prcinfCache.CPUUsageData);
         prcsInfo.CPUUsg := 0;
         CacheDict.Add(prcsInfo.pid, prcinfCache);
-      end
-      else
-      begin
+      end else begin
         prcinfCache := CacheDict[prcsInfo.pid];
-//        prcsInfo.icon := prcinfCache.icon;
         prcsInfo.CPUUsg := wsGetCpuUsage(prcinfCache.CPUUsageData);
         prcsInfo.imageindex := prcinfCache.index;
       end;
-      Inc(n);
-      list.Add(prcsInfo);
+
+      if prcsInfo.pid = 0 then
+        prcsInfo.Free
+      else
+        list.Add(prcsInfo);
+
+      More := Process32Next(HwndHelp, fprocessentry32);
     end;
 
-    sort;
-    setData;
+    sortList;
+    Synchronize(setData);
+
     Sleep(500);
   end;
   FreeMem(pPMC);
-  icon.Free;
+  //icon.Free;
 end;
 
 constructor TUpdateThrd.Create;
@@ -143,7 +198,8 @@ begin
   inherited Create(True);
   CacheDict := TDictionary<Cardinal, TProcessInfoCache>.Create;
   list := TList.Create;
-  IsQuit := False;
+  list2:= TList.Create;
+
 end;
 
 destructor TUpdateThrd.Destroy;
@@ -157,11 +213,20 @@ begin
     prcinfCache := CacheDict.Items[key];
     prcinfCache.Free;
   end;
-  CacheDict.Keys.Free; { 必须手动释放这个？  }
+//  if Assigned(CacheDict.Keys) then
+//  begin
+//    CacheDict.Keys.Free;{ 必须手动释放这个？  }
+//  end;
+
   CacheDict.Free;
-  clear;
-  list.Free;
-  list := nil;
+
+  clearList;
+  changeList;
+  clearList;
+
+  freeandnil(list2);
+  freeandnil(list);
+
 end;
 
 procedure TUpdateThrd.ChooseOrderByColum(colum: Integer; up: Boolean);
@@ -171,12 +236,8 @@ begin
   Self.up := up;
 end;
 
-procedure TUpdateThrd.Quit();
-begin
-  IsQuit := True;
-end;
 
-procedure TUpdateThrd.sort;
+procedure TUpdateThrd.sortList;
 var
   comparefun: TListSortCompare;
 begin

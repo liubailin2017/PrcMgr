@@ -8,7 +8,7 @@ uses
 type
  { 一条进程信息记录  }
 TProcessInfo = class
-  pid : THandle;
+  pid : Thandle;
   Name : string;
   MemUsg : Integer;
   CPUUsg : Single;
@@ -18,6 +18,7 @@ TProcessInfo = class
   AbsolutePath : string;
   imageindex:Integer;
   tag:Byte;
+  isSelected : Boolean;
 end;
 PTProcessInfo = ^TProcessInfo;
 
@@ -30,7 +31,6 @@ TProcessInfoCache = class
   IsAlive : Boolean; { 没被查询就被回收掉内存 }
   destructor Destroy; override;
 end;
-
 
 implementation
 

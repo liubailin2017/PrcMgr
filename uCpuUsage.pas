@@ -26,7 +26,6 @@ Using this unit :
 unit uCpuUsage;
 
 interface
-
 const
  wsMinMeasurementInterval=250; {minimum amount of time that must
  have elapsed to calculate CPU usage, miliseconds. If time elapsed
@@ -52,7 +51,8 @@ function GetCpuNmb(): Integer;
 implementation
 
 uses Windows;
-
+const
+  PROCESS_QUERY_LIMITED_INFORMATION = 4096;
 var
 GCpuNmb : Integer = 0;
 
@@ -78,13 +78,15 @@ var
 begin
  result:=nil;
  //We need a handle with PROCESS_QUERY_INFORMATION privileges
- h:=OpenProcess(PROCESS_QUERY_INFORMATION,false,PID);
+  h:=OpenProcess(PROCESS_QUERY_INFORMATION,false,PID);
+  if h = 0 then
+  h := OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION , False, PID);
  if h=0 then exit;
- new(p);
- p.PID:=PID;
- p.Handle:=h;
- p.LastUpdateTime:=GetTickCount;
- p.LastUsage:=0;
+   new(p);
+   p.PID:=PID;
+   p.Handle:=h;
+   p.LastUpdateTime:=GetTickCount;
+   p.LastUsage:=0;
  if GetProcessTimes(p.Handle,mCreationTime,mExitTime,mKernelTime,
                  mUserTime) then begin
   //convert _FILETIME to Int64

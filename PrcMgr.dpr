@@ -11,28 +11,40 @@ uses
   CompareForProcess in 'CompareForProcess.pas',
   Windows,sysUtils,Dialogs;
 {$R *.res}
+{$R uac.res}
 const
-atm = 'identification11';
-atm2 = 'identification2';
+atm = 'identification20';
+
 var
+hMutex:THandle;
 hwd : HWND;
 errmsg : string;
+bIsExit : Boolean;
 begin
- if GlobalFindAtom(atm)=0 then
- begin
-  GlobalAddAtom(atm);
-  System.ReportMemoryLeaksOnShutdown := true;
-  Application.Initialize;
-  Application.MainFormOnTaskbar := True;
-  Application.CreateForm(TPrcMainFrm, PrcMainFrm);
-  Application.Run;
-  GlobalDeleteAtom(GlobalFindAtom(atm));
- end;
- hwd := FindWindow(nil,'Process Manager');
- ShowWindow(hwd ,SW_RESTORE);
- setForegroundWindow(hwd);
+  bIsExit := False;
+  hMutex := OpenMutex(MUTEX_ALL_ACCESS, True, 'Process Manager');
+  if hMutex <> 0 then bIsExit := true;
+  hMutex := CreateMutex(nil, False, 'Process Manager');
+  if hMutex = 0 then  bIsExit := true;
+  if bIsExit then
+  begin
+    hwd := FindWindow(nil,'Process Manager');
+    if hwd <> 0 then
+    begin
+      ShowWindow(hwd ,SW_RESTORE);
+      setForegroundWindow(hwd);
+    end;
+    Exit;
+  end;
 
- if hwd = 0 then
-   ShowMessage('errcode : ' + IntToStr(GetLastError));
-
+  try
+    System.ReportMemoryLeaksOnShutdown := true;
+    Application.Initialize;
+    Application.MainFormOnTaskbar := True;
+    Application.CreateForm(TPrcMainFrm, PrcMainFrm);
+    Application.Run;
+  finally
+   // ReleaseMutex(hMutex);
+  end;
 end.
+
